@@ -1,5 +1,6 @@
 import { Ctx, Start, Update, On } from "nestjs-telegraf";
 import { Markup, Scenes, Telegraf, } from "telegraf";
+import { getKeyboardOptions } from './lib/create-keyboard';
 
 type Context = Scenes.SceneContext
 
@@ -7,14 +8,13 @@ type Context = Scenes.SceneContext
 export class BotService extends Telegraf<Context> {
     @Start()
     async onStart(@Ctx() ctx: Context) {
-        await ctx.reply(
-            `Welcome, ${ctx.from.first_name}. Тут всякие штуки про йогу.`,
-            Markup.inlineKeyboard([
-                Markup.button.callback('Вариант 1', 'option1'),
-                Markup.button.callback('Вариант 2', 'option2'),
-                Markup.button.callback('Вариант 3', 'option3'),
-                Markup.button.callback('Вариант 4', 'option4')
-            ])
+        const options = getKeyboardOptions(
+            'keyboard',
+            [[{ text: 'Вариант 1' }], [{ text: 'Вариант 2' }]]
+        )
+        await ctx.replyWithMarkdownV2(
+            //@ts-ignore
+            `Welcome, ${ctx.from.first_name}\\. Тут всякие штуки про йогу\\.`, options
         )
     }
 

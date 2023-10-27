@@ -15,11 +15,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  username        String  @unique
+  username        String   @unique
   first_name      String
+  chat_id         Int      @default(0)
   last_name       String?
-  is_admin        Boolean @default(false)
-  has_blocked_bot Boolean @default(false)
+  is_admin        Boolean? @default(false)
+  has_blocked_bot Boolean? @default(false)
 
   @@map("users")
 }

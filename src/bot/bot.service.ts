@@ -1,4 +1,4 @@
-import { Ctx, Start, Update, On } from "nestjs-telegraf";
+import { Ctx, Start, Update, On, Hears } from "nestjs-telegraf";
 import { Markup, Scenes, Telegraf, } from "telegraf";
 import { getKeyboardOptions } from './lib/create-keyboard';
 
@@ -10,7 +10,7 @@ export class BotService extends Telegraf<Context> {
     async onStart(@Ctx() ctx: Context) {
         const options = getKeyboardOptions(
             'keyboard',
-            [[{ text: 'Вариант 1' }], [{ text: 'Вариант 2' }]]
+            [[{ text: 'Вариант 1' }], [{ text: 'Вариант 2' }], [{ text: 'Вариант 3' }], [{ text: 'Вариант 4' }]]
         )
         await ctx.replyWithMarkdownV2(
             //@ts-ignore
@@ -38,5 +38,25 @@ export class BotService extends Telegraf<Context> {
             default:
                 ctx.reply('Неизвестная опция');
         }
+    }
+
+    @Hears('Вариант 1')
+    async onOption1(@Ctx() ctx: Context) {
+        await ctx.reply('Вы выбрали Вариант 1');
+    }
+
+    @Hears('Вариант 2')
+    async onOption2(@Ctx() ctx: Context) {
+        await ctx.reply('Вы выбрали Вариант 2');
+    }
+
+    @Hears('Вариант 3')
+    async onOption3(@Ctx() ctx: Context) {
+        await ctx.reply('Вы выбрали Вариант 3');
+    }
+
+    @Hears('Вариант 4')
+    async onOption4(@Ctx() ctx: Context) {
+        await ctx.reply('Вы выбрали Вариант 4');
     }
 }

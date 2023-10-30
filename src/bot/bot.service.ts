@@ -15,9 +15,10 @@ export class BotService extends Telegraf<Context> {
     ) {
         super(config.get('BOT_TOKEN'));
     }
+
+    private waitingForAdminMessage = false;
     @Start()
     async onStart(@Ctx() ctx: Context) {
-        console.log(ctx.update?.["message"])
         const user = await this.prisma.user.findUnique({
             where: {
                 username: ctx.from.username
@@ -49,7 +50,7 @@ export class BotService extends Telegraf<Context> {
         if (user.is_admin) {
             const options = getKeyboardOptions(
                 'inline_keyboard',
-                [[{ text: 'Отправить привет всем юзерам', callback_data: 'admin_send_hi' }]]
+                [[{ text: 'Отправить сообщение всем юзерам', callback_data: 'admin_send_hi' }]]
             )
 
             await ctx.replyWithMarkdownV2(
@@ -58,22 +59,9 @@ export class BotService extends Telegraf<Context> {
                 options
             )
         }
-
-
     }
 
     @On('callback_query')
-    async broadcastMessage(message: string) {
-        const users = await this.prisma.user.findMany();
-
-        for (const user of users) {
-            try {
-                await this.telegram.sendMessage(user.chat_id, 'ПРИВЕТИК');
-            } catch (error) {
-                console.error(`Failed to send message to ${user.username}: `, error);
-            }
-        }
-    }
     async onCallback(@Ctx() ctx: Context) {
         const data = ctx.callbackQuery?.['data'];
 
@@ -91,8 +79,8 @@ export class BotService extends Telegraf<Context> {
                 ctx.reply('Вы выбрали Вариант 4');
                 break;
             case 'admin_send_hi':
-                await this.broadcastMessage('Привет всем пользователям!');
-                ctx.reply('Сообщение отправлено.');
+                await ctx.reply('Введите текст сообщения (или отправьте /cancel для отмены):');
+                this.waitingForAdminMessage = true;
                 break;
             default:
                 ctx.reply('Неизвестная опция');
@@ -117,5 +105,50 @@ export class BotService extends Telegraf<Context> {
     @Hears('Вариант 4')
     async onOption4(@Ctx() ctx: Context) {
         await ctx.reply('Вы выбрали Вариант 4');
+    }
+
+    @Hears(/.+/)
+    async onMessage(@Ctx() ctx: Context) {
+        //@ts-ignore
+        const text = ctx.message.text;
+
+        const user = await this.prisma.user.findUnique({
+            where: {
+                username: ctx.from.username
+            }
+        });
+
+        if (this.waitingForAdminMessage && user.is_admin) {
+            if (text === '/cancel') {
+                this.waitingForAdminMessage = false;
+                await ctx.reply('Отправка сообщения отменена.');
+                return;
+            }
+
+            const users = await this.prisma.user.findMany({
+                where: {
+                    has_blocked_bot: false
+                }
+            });
+
+            for (const user of users) {
+                try {
+                    await this.telegram.sendMessage(user.chat_id, text);
+                } catch (error) {
+                    await this.prisma.user.update({
+                        where: {
+                            username: user.username
+                        },
+                        data: {
+                            has_blocked_bot: true
+                        }
+                    })
+                }
+            }
+
+            this.waitingForAdminMessage = false;
+            await ctx.reply('Сообщение отправлено.');
+            return;
+        }
     }
 }

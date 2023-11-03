@@ -2,8 +2,8 @@ import { Ctx, Start, Update, On, Hears } from "nestjs-telegraf";
 import { Markup, Scenes, Telegraf, } from "telegraf";
 import { getKeyboardOptions } from './lib/create-keyboard';
 import { PrismaService } from "@/prisma/prisma.service";
-import { options } from "./bot-config.factory";
 import { ConfigService } from "@nestjs/config";
+const path = require('path');
 
 type Context = Scenes.SceneContext
 
@@ -66,18 +66,18 @@ export class BotService extends Telegraf<Context> {
         const data = ctx.callbackQuery?.['data'];
 
         switch (data) {
-            case 'option1':
-                ctx.reply('Вы выбрали Вариант 1');
-                break;
-            case 'option2':
-                ctx.reply('Вы выбрали Вариант 2');
-                break;
-            case 'option3':
-                ctx.reply('Вы выбрали Вариант 3');
-                break;
-            case 'option4':
-                ctx.reply('Вы выбрали Вариант 4');
-                break;
+            // case 'option1':
+            //     ctx.reply('Вы выбрали Вариант 1');
+            //     break;
+            // case 'option2':
+            //     ctx.reply('Вы выбрали Вариант 2');
+            //     break;
+            // case 'option3':
+            //     ctx.reply('Вы выбрали Вариант 3');
+            //     break;
+            // case 'option4':
+            //     ctx.reply('Вы выбрали Вариант 4');
+            //     break;
             case 'admin_send_hi':
                 await ctx.reply('Введите текст сообщения (или отправьте /cancel для отмены):');
                 this.waitingForAdminMessage = true;
@@ -99,7 +99,15 @@ export class BotService extends Telegraf<Context> {
 
     @Hears('Вариант 3')
     async onOption3(@Ctx() ctx: Context) {
-        await ctx.reply('Вы выбрали Вариант 3');
+        try {
+            const audio = path.join(__dirname, 'lib', '3.mp3');
+            const fileId = await ctx.replyWithAudio({ source: audio });
+            console.log(fileId);
+            return fileId;
+        } catch (error) {
+            console.error('Ошибка при отправке аудио:', error);
+            await ctx.reply('Произошла ошибка при отправке аудиофайла.');
+        }
     }
 
     @Hears('Вариант 4')

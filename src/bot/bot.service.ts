@@ -94,16 +94,20 @@ export class BotService extends Telegraf<Context> {
 
     @Hears('Вариант 2')
     async onOption2(@Ctx() ctx: Context) {
-        await ctx.reply('Вы выбрали Вариант 2');
+        const video = path.join(__dirname, '..', '..', 'assets', '2.MOV');
+        const fileId = await ctx.replyWithVideo({ source: video });
+        console.log(fileId);
     }
 
     @Hears('Вариант 3')
     async onOption3(@Ctx() ctx: Context) {
         try {
-            const audio = path.join(__dirname, 'lib', '3.mp3');
-            const fileId = await ctx.replyWithAudio({ source: audio });
-            console.log(fileId);
-            return fileId;
+            // const video = path.join(__dirname, '..', '..', 'assets', 'Медитация расслабления.MP3');
+            // const fileId = await ctx.replyWithAudio({ source: video });
+            // console.log(fileId);
+            await ctx.replyWithAudio("CQACAgIAAxkDAAIBQmVE-21rVmkOxwML-HfkGVj45-EtAAJAOwACU3woSqLD69_B0-LAMwQ", {
+                caption: "Королевская медитация, для тех кто хочет: \n -Отпустить тревогу \n -Наполниться королевской энергией \n -Абстрагироваться от проблем \n -Проживать момент «здесь и сейчас» \n \nПусть каждый день будет наполнен королевской энергией💕"
+            });
         } catch (error) {
             console.error('Ошибка при отправке аудио:', error);
             await ctx.reply('Произошла ошибка при отправке аудиофайла.');
